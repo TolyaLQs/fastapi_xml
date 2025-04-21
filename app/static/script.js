@@ -20,6 +20,7 @@ function uploadFile() {
         loading.style.display = 'none';
         html = `<div class='info-file'>File ${data.filename} uploaded (${data.size} bytes)</div>
                 <div class="table-response">`;
+        console.log('data.report: ' + data.report);
         if (data.report.length > 1){
             data.report.forEach(site => {
                 html += `<div class='site'>
