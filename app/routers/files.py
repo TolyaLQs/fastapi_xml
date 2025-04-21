@@ -98,7 +98,6 @@ def update_file(tree, site, db):
     return tree, error_site
 
 
-
 def open_file(file_path):
     with open(file_path, "r", encoding='utf-8') as f:
         parser = ET.XMLParser(encoding="utf-8")
