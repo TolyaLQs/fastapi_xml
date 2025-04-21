@@ -20,19 +20,52 @@ function uploadFile() {
         loading.style.display = 'none';
         html = `<div class='info-file'>File ${data.filename} uploaded (${data.size} bytes)</div>
                 <div class="table-response">`;
-        console.log('data.report: ' + data.report);
-        if (data.report.length > 1){
-            data.report.forEach(site => {
+        if (data.status_code == 400){
+            html += `${data.detail}`;
+        } else if (date.status_code == 500){
+            html += `${data.detail}`;
+        } else {
+            if (data.report.length > 1){
+                data.report.forEach(site => {
+                    html += `<div class='site'>
+                        <div class='site-title'>${site.site_name}</div>`;
+                    if (site.check_error === false){
+                        html += `<div class='error-not'>Ошибок нет</div>`;
+                    } else{
+                        html += `<div class='error-yes'>Ошибки есть</div>`;
+                    }
+                    let i = 0;
+                    if (site.products_error.length > 0) {
+                        site.products_error.forEach(product =>{
+                            i = i+1;
+                            if (product.offer_error === false){
+                                html += `<div class='product error-not'>`;
+                            } else {
+                                html += `<div class='product error-yes'>`;
+                            }
+
+                            html += `<span class="product-number">${i}</span>
+                                <span class="product-id">id:${product.offer_id}</span>
+                                <span class="product-name">name:${product.offer_name}</span>`;
+                            html += `</div>`;
+                        })
+                    }
+                    if (site.message){
+                        html += `<div class="response-message">${site.message}</div>`
+                    }
+                    html += `</div>`;
+                });
+            } else {
                 html += `<div class='site'>
-                    <div class='site-title'>${site.site_name}</div>`;
-                if (site.check_error === false){
+                    <div class='site-title'>${data.report.site_name}</div>`;
+                if (data.report.check_error === false){
                     html += `<div class='error-not'>Ошибок нет</div>`;
                 } else{
                     html += `<div class='error-yes'>Ошибки есть</div>`;
                 }
                 let i = 0;
-                if (site.products_error.length > 0) {
-                    site.products_error.forEach(product =>{
+                if (data.report.products_error.length > 0) {
+                    data.report.products_error.forEach(product =>{
                         i = i+1;
                         if (product.offer_error === false){
                             html += `<div class='product error-not'>`;
@@ -46,39 +79,11 @@ function uploadFile() {
                         html += `</div>`;
                     })
                 }
-                if (site.message){
-                    html += `<div class="response-message">${site.message}</div>`
+                if (data.report.message){
+                    html += `<div class="response-message">${data.report.message}</div>`
                 }
                 html += `</div>`;
-            });
-        } else {
-            html += `<div class='site'>
-                <div class='site-title'>${data.report.site_name}</div>`;
-            if (data.report.check_error === false){
-                html += `<div class='error-not'>Ошибок нет</div>`;
-            } else{
-                html += `<div class='error-yes'>Ошибки есть</div>`;
             }
-            let i = 0;
-            if (data.report.products_error.length > 0) {
-                data.report.products_error.forEach(product =>{
-                    i = i+1;
-                    if (product.offer_error === false){
-                        html += `<div class='product error-not'>`;
-                    } else {
-                        html += `<div class='product error-yes'>`;
-                    }
-
-                    html += `<span class="product-number">${i}</span>
-                        <span class="product-id">id:${product.offer_id}</span>
-                        <span class="product-name">name:${product.offer_name}</span>`;
-                    html += `</div>`;
-                })
-            }
-            if (data.report.message){
-                html += `<div class="response-message">${data.report.message}</div>`
-            }
-            html += `</div>`;
         }
         html += `</div>`;
         document.getElementById('result').innerHTML = html;

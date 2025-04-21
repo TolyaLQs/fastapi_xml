@@ -16,6 +16,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 def update_file(tree, site, db):
+    print('1')
     error_site = {'site_name': site.name,
                   'check_error': False,
                   'products_error': [],
@@ -29,6 +30,7 @@ def update_file(tree, site, db):
     try:
         categories = db.query(Category).filter(Category.site_id == site.id).all()
     except:
+        print('123')
         error_site['products_error'] = ''
         error_site['check_error'] = True
         error_site['message'] = 'Нет категорий у сайта'
@@ -116,6 +118,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         sites = db.query(Site).all()
         report_list = []
         if len(sites) == 0:
+            print('30')
             return {'status_code': 400, 'detail': 'Site not found'}
         if len(sites) > 1:
             for site in sites:
@@ -125,6 +128,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
                 file_save_path = OUTPUT_DIR+'/'+site.filename
                 otvet.write(file_save_path, encoding='utf-8')
         else:
+            print('31')
             tree = open_file(file_path)
             otvet, error = update_file(tree, sites, db)
             report_list.append(error)
@@ -136,6 +140,7 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
             'report': report_list,
         }
     except Exception as e:
+        print('32')
         raise HTTPException(status_code=500, detail=str(e))
 
 
