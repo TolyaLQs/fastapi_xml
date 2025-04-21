@@ -2,6 +2,6 @@ fastapi[all]
 sqlalchemy
 apscheduler
 sqlalchemy-utils
-
+lxml
 
 
