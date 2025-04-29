@@ -6,7 +6,7 @@ import app.models as models
 from pydantic import BaseModel
 from typing import Optional, Union
 from sqlalchemy import and_
-
+from app.routers import parse
 router = APIRouter()
 
 
@@ -385,3 +385,28 @@ def read_timemarks(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
         return db.query(models.TimeMark).offset(skip).limit(limit).all()
     except:
         return {'status-code': 400, 'detail': "Timemarks not found"}
+
+
+@router.get("/site-parse/{site_id}")
+def site_parse(site_id: int, db: Session = Depends(get_db)):
+    try:
+        site = db.query(models.Site).filter(models.Site.id == site_id).first()
+        print('получили сайт')
+    except:
+        return {'status-code': 400, 'detail': "Site not found"}
+    list_cat = parse.all_list_kat
+    i = 0
+    print('начинаем парсить категории')
+    for cat in list_cat:
+        try:
+            category = db.query(models.Category).filter(models.Category.name == cat['title']).first()
+            print('получили категорию')
+        except:
+            print(f'проблема с категорией {cat["title"]}')
+
+        category = models.Category(name=cat['title'], site_id=site_id, parent_id=cat['parent_id'])
+        db.add(category)
+        db.commit()
+        db.refresh(category)
+        print(f'количество категорий: {i}')
+        i += 1
