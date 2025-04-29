@@ -403,8 +403,11 @@ def site_parse(site_id: int, db: Session = Depends(get_db)):
             print('получили категорию')
         except:
             print(f'проблема с категорией {cat["title"]}')
-
-        category = models.Category(name=cat['title'], site_id=site_id, parent_id=cat['parent_id'])
+        parent_cat = db.query(models.Category).filter(models.Category.name == cat['parent_id']).first()
+        if parent_cat:
+            category = models.Category(name=cat['title'], site_id=site_id, parent_id=parent_cat.id)
+        else:
+            category = models.Category(name=cat['title'], site_id=site_id)
         db.add(category)
         db.commit()
         db.refresh(category)
