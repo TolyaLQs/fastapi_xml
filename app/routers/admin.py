@@ -387,29 +387,101 @@ def read_timemarks(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
         return {'status-code': 400, 'detail': "Timemarks not found"}
 
 
-@router.get("/site-parse/{site_id}")
-def site_parse(site_id: int, db: Session = Depends(get_db)):
-    try:
-        site = db.query(models.Site).filter(models.Site.id == site_id).first()
-        print('получили сайт')
-    except:
-        return {'status-code': 400, 'detail': "Site not found"}
-    list_cat = parse.all_list_kat
-    i = 0
-    print('начинаем парсить категории')
-    for cat in list_cat:
+@router.get("/site-parse/")
+def site_parse(db: Session = Depends(get_db)):
+    sites = parse.all_site_list
+    for site in sites:
+        print(site)
         try:
-            category = db.query(models.Category).filter(models.Category.name == cat['title']).first()
-            print('получили категорию')
+            sit = db.query(models.Site).filter(models.Site.name == site['site_name']).first()
+            if not sit:
+                sit = models.Site(name=site['site_name'], url=site['site_url'], filename=site['site_file'])
+                db.add(sit)
+                db.commit()
+                db.refresh(sit)
+                print(f'Сайт добавлен')
+            else:
+                print(f'Сайт уже добавлен')
+                print(sit)
+                continue
         except:
-            print(f'проблема с категорией {cat["title"]}')
-        parent_cat = db.query(models.Category).filter(models.Category.name == cat['parent_id']).first()
-        if parent_cat:
-            category = models.Category(name=cat['title'], site_id=site_id, parent_id=parent_cat.id)
-        else:
-            category = models.Category(name=cat['title'], site_id=site_id)
-        db.add(category)
-        db.commit()
-        db.refresh(category)
-        print(f'количество категорий: {i}')
-        i += 1
+            sit = models.Site(name=site['site_name'], url=site['site_url'], filename=site['site_file'])
+            db.add(sit)
+            db.commit()
+            db.refresh(sit)
+            print(f'Сайт добавлен')
+
+    categories = parse.all_list_kat
+    for site, categories in categories.items():
+        try:
+            sit = db.query(models.Site).filter(models.Site.name == site).first()
+            if sit:
+                print(f'Сайт найден')
+                print(sit)
+        except:
+            print(f'Сайт не добавлен')
+            continue
+        i = 1
+        for category in categories:
+            try:
+                cat = db.query(models.Category).filter(and_(models.Category.name == category['title']), (models.Category.site_id == sit.id)).first()
+                if cat:
+                    print(f'Категория есть')
+                    print(cat.name)
+                    continue
+                else:
+                    if category['parent_id']:
+                        parent_id = db.query(models.Category).filter(
+                            models.Category.name == category['parent_id']).first()
+                        if parent_id:
+                            cat = models.Category(name=category['title'], site_id=sit.id, parent_id=parent_id.id)
+                        else:
+                            cat = models.Category(name=category['title'], site_id=sit.id)
+                    else:
+                        cat = models.Category(name=category['title'], site_id=sit.id)
+
+                    db.add(cat)
+                    db.commit()
+                    db.refresh(cat)
+                    print(f'количество категорий: {i}')
+                    i += 1
+            except:
+                print(sit)
+                if category['parent_id']:
+                    parent_id = db.query(models.Category).filter(models.Category.name == category['parent_id']).first()
+                    if parent_id:
+                        cat = models.Category(name=category['title'], site_id=sit.id, parent_id=parent_id.id)
+                    else:
+                        cat = models.Category(name=category['title'], site_id=sit.id)
+                else:
+                    cat = models.Category(name=category['title'], site_id=sit.id)
+
+                db.add(cat)
+                db.commit()
+                db.refresh(cat)
+                print(f'количество категорий: {i}')
+                i += 1
+    # try:
+    #     site = db.query(models.Site).filter(models.Site.id == site_id).first()
+    #     print('получили сайт')
+    # except:
+    #     return {'status-code': 400, 'detail': "Site not found"}
+    # list_cat = parse.all_list_kat
+    # i = 0
+    # print('начинаем парсить категории')
+    # for cat in list_cat:
+    #     try:
+    #         category = db.query(models.Category).filter(models.Category.name == cat['title']).first()
+    #         print('получили категорию')
+    #     except:
+    #         print(f'проблема с категорией {cat["title"]}')
+    #     parent_cat = db.query(models.Category).filter(models.Category.name == cat['parent_id']).first()
+    #     if parent_cat:
+    #         category = models.Category(name=cat['title'], site_id=site_id, parent_id=parent_cat.id)
+    #     else:
+    #         category = models.Category(name=cat['title'], site_id=site_id)
+    #     db.add(category)
+    #     db.commit()
+    #     db.refresh(category)
+    #     print(f'количество категорий: {i}')
+    #     i += 1

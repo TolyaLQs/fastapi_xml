@@ -1,4 +1,4 @@
-fastapi[all]
+fastapi
 sqlalchemy
 apscheduler
 sqlalchemy-utils
