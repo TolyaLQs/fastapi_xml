@@ -144,3 +144,47 @@ async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def update_category(tree, db):
+    contexts = {}
+    root = tree.getroot()
+    for shop in root:
+        for element in shop:
+            if element.tag == 'name':
+                site_name = element.text
+                site = db.query(Site).filter(Site.name == site_name).first()
+                if site is not None:
+                    contexts['site_id'] = site.id
+                    contexts['site_name'] = site.name
+                    contexts['categories'] = []
+                else:
+                    return {'status-code': 400, 'detail': 'Site not found'}
+            if element.tag == 'categories':
+                for category in element:
+                    if category.tag == 'category':
+                        if category.text is not None:
+                            category_name = db.query(Category).filter(Category.name == category.text).first()
+                        #     if category_name is not None:
+                        #
+                        #     else:
+                        #         category.attrib['parentId'] = None
+                        # else:
+
+
+
+@router.post("/site/update-category")
+async def update_site_category(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    try:
+        file_path = os.path.join(UPLOAD_DIR, file.filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            buffer.close()
+            tree = open_file(file_path)
+            update_category(tree, db)
+        return {
+            "filename": file.filename,
+            "size": os.path.getsize(file_path),
+        }
+
+    except Exception as e:
+        print('32')
+        raise HTTPException(status_code=500, detail=str(e))

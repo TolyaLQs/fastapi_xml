@@ -113,6 +113,11 @@ async def admin_site(request: Request, site_id: int):
     return templates.TemplateResponse("site.html", {"request": request, 'site_id': site_id})
 
 
+@app.get("/site/category_update")
+async def category_update(request: Request):
+    return templates.TemplateRsponse("category_update.html", {"request": request})
+
+
 if __name__ == "__main__":
     import uvicorn
     # Запуск сервера
